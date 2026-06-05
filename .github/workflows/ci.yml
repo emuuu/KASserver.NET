@@ -1,0 +1,60 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target-framework: [net8.0, net9.0, net10.0]
+    steps:
+      - uses: actions/checkout@v6
+      # Install all SDKs so the build host understands every TargetFramework (net8/9/10)
+      # and the .slnx solution format (needs SDK >= 9.0.200), regardless of which TFM is tested.
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+      - run: dotnet restore tests/KASserver.Client.Tests/KASserver.Client.Tests.csproj
+      - run: dotnet build -c Release -f ${{ matrix.target-framework }} --no-restore
+        working-directory: tests/KASserver.Client.Tests
+      - run: dotnet test -c Release -f ${{ matrix.target-framework }} --no-build
+        working-directory: tests/KASserver.Client.Tests
+
+  # Validate that the library actually packs into a NuGet package (catches packaging breakage —
+  # README mapping, XML docs in the package, .nuspec — at CI time instead of at release time).
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+      - run: dotnet build KASserver.Client/KASserver.Client.csproj -c Release
+      - run: dotnet pack KASserver.Client/KASserver.Client.csproj -c Release --no-build -o ./artifacts
+      - name: Verify the package contains the assemblies and XML docs
+        run: |
+          PKG=$(ls ./artifacts/*.nupkg | head -1)
+          echo "Inspecting $PKG"
+          CONTENTS=$(unzip -l "$PKG")
+          echo "$CONTENTS"
+          for tfm in net8.0 net9.0 net10.0; do
+            echo "$CONTENTS" | grep -q "lib/$tfm/KASserver.Client.dll" || { echo "::error::missing lib/$tfm/KASserver.Client.dll"; exit 1; }
+            echo "$CONTENTS" | grep -q "lib/$tfm/KASserver.Client.xml" || { echo "::error::missing lib/$tfm/KASserver.Client.xml"; exit 1; }
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nupkg
+          path: ./artifacts/*.nupkg

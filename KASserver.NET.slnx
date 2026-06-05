@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/tests/">
+    <Project Path="tests/KASserver.Client.Tests/KASserver.Client.Tests.csproj" />
+  </Folder>
+  <Project Path="KASserver.Client/KASserver.Client.csproj" />
+</Solution>

@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+		<RootNamespace>KASserver</RootNamespace>
+		<AssemblyName>KASserver.Client</AssemblyName>
+		<IsPackable>true</IsPackable>
+		<!-- Set here (early, before the SDK derives DocumentationFile) so the XML docs are actually emitted. -->
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<NoWarn>$(NoWarn);1591</NoWarn>
+		<PackageId>KASserver.NET</PackageId>
+		<Title>KASserver.NET</Title>
+		<Description>Unofficial .NET client for the ALL-INKL.COM KAS API (SOAP). Manage mailboxes, forwards, domains, DNS, databases, FTP and cronjobs — with automatic session auth and flood throttling, and a workaround for the faulty KAS WSDL.</Description>
+		<PackageTags>all-inkl;allinkl;kas;kasserver;hosting;email;mailbox;dns;soap</PackageTags>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="KASserver.Client.Tests" />
+	</ItemGroup>
+
+	<!-- Align Microsoft.Extensions.* with each target framework's baseline to avoid version skew. -->
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+		<PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+		<PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="9.0.0" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="10.0.0" />
+	</ItemGroup>
+
+</Project>

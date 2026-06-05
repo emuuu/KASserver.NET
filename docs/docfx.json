@@ -1,0 +1,30 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "src": "..",
+          "files": [ "KASserver.Client/KASserver.Client.csproj" ]
+        }
+      ],
+      "dest": "api",
+      "properties": {
+        "TargetFramework": "net10.0"
+      }
+    }
+  ],
+  "build": {
+    "content": [
+      { "files": [ "api/**.yml", "api/index.md" ] },
+      { "files": [ "*.md", "toc.yml" ] }
+    ],
+    "output": "_site",
+    "template": [ "default", "modern" ],
+    "globalMetadata": {
+      "_appName": "KASserver.NET",
+      "_appTitle": "KASserver.NET",
+      "_enableSearch": true,
+      "_appFooter": "KASserver.NET — unofficial .NET client for the ALL-INKL.COM KAS API"
+    }
+  }
+}
