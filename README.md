@@ -63,9 +63,43 @@ public class MailProvisioning(IKasClient kas)
 }
 ```
 
+### Subaccounts (superuser only)
+
+```csharp
+public class AccountProvisioning(IKasClient kas)
+{
+    public async Task Example()
+    {
+        // Create a subaccount with an explicit quota
+        var login = await kas.AddAccountAsync(new AddAccount
+        {
+            KasPassword = "Kas-Pw!",
+            FtpPassword = "Ftp-Pw!",
+            HostnameKind = AccountHostnameKind.Domain,
+            HostnamePart1 = "example",
+            HostnamePart2 = "com",
+            Quota = new AccountQuota { MaxDomain = 1, MaxWebspace = 1024, MaxMailAccount = 25 },
+        });
+
+        // List subaccounts, then raise a single quota
+        var accounts = await kas.GetAccountsAsync();
+        await kas.UpdateAccountAsync(login, new UpdateAccount
+        {
+            Quota = new AccountQuota { MaxWebspace = 2048 },
+        });
+
+        // Enable SSH access (update_superusersettings)
+        await kas.UpdateSuperuserSettingsAsync(login, new UpdateSuperuserSettings { SshAccess = true });
+
+        // Remove the subaccount including all of its resources (irreversible)
+        await kas.DeleteAccountAsync(login);
+    }
+}
+```
+
 ## Status
 
-Early scaffold. Implemented: authentication, session handling, automatic flood throttling, raw-SOAP transport with `Map` parsing, and the mailbox/forward read & write actions. The remaining KAS actions (DNS, databases, FTP, cronjobs, …) follow the same `RequestAsync(action, params)` mechanism and are being added incrementally.
+Early scaffold. Implemented: authentication, session handling, automatic flood throttling, raw-SOAP transport with `Map` parsing, the mailbox/forward read & write actions, and the account-management actions (subaccounts, account/superuser settings, ownership). The remaining KAS actions (DNS, databases, FTP, cronjobs, …) follow the same `RequestAsync(action, params)` mechanism and are being added incrementally.
 
 ## Documentation
 
