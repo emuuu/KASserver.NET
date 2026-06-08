@@ -29,6 +29,80 @@ public interface IKasClient
     /// <exception cref="KasApiException">The KAS API returned a fault or an uninterpretable response.</exception>
     Task<IReadOnlyDictionary<string, object?>> GetAccountResourcesAsync(CancellationToken cancellationToken = default);
 
+    /// <summary>Reads the account settings as a typed model (<c>get_accountsettings</c>).</summary>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <exception cref="KasApiException">The KAS API returned a fault or an uninterpretable response.</exception>
+    Task<AccountSettings> GetAccountSettingsTypedAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Reads the account resource quotas as a typed model (<c>get_accountresources</c>).</summary>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <exception cref="KasApiException">The KAS API returned a fault or an uninterpretable response.</exception>
+    Task<AccountResources> GetAccountResourcesTypedAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Edits your own account settings (<c>update_accountsettings</c>).</summary>
+    /// <param name="changes">The fields to change; unset fields are left unchanged.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <exception cref="KasApiException">The KAS API returned a fault or an uninterpretable response.</exception>
+    Task UpdateAccountSettingsAsync(UpdateAccountSettings changes, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Creates a subaccount (<c>add_account</c>). Requires a superuser login.
+    /// </summary>
+    /// <param name="account">The subaccount to create.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>The <c>account_login</c> of the created subaccount, as returned by KAS.</returns>
+    /// <exception cref="KasApiException">The KAS API returned a fault or did not return an account login.</exception>
+    Task<string> AddAccountAsync(AddAccount account, CancellationToken cancellationToken = default);
+
+    /// <summary>Lists the subaccounts (<c>get_accounts</c>). Requires a superuser login.</summary>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <exception cref="KasApiException">The KAS API returned a fault or an uninterpretable response.</exception>
+    Task<IReadOnlyList<SubAccount>> GetAccountsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Reads a single subaccount by its login (<c>get_accounts</c> with an <c>account_login</c> filter).
+    /// Requires a superuser login.
+    /// </summary>
+    /// <param name="accountLogin">The subaccount login (e.g. <c>w01abcde</c>).</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>The subaccount, or <c>null</c> when no account matches the login.</returns>
+    /// <exception cref="KasApiException">The KAS API returned a fault or an uninterpretable response.</exception>
+    Task<SubAccount?> GetAccountAsync(string accountLogin, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Edits a subaccount (<c>update_account</c>). Identified by its <c>account_login</c>. Requires a superuser login.
+    /// </summary>
+    /// <param name="accountLogin">The subaccount login (e.g. <c>w01abcde</c>).</param>
+    /// <param name="changes">The fields to change; unset fields are left unchanged.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <exception cref="KasApiException">The KAS API returned a fault or an uninterpretable response.</exception>
+    Task UpdateAccountAsync(string accountLogin, UpdateAccount changes, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes a subaccount (<c>delete_account</c>). Requires a superuser login.
+    /// <b>Irreversible</b>: removes the subaccount including all of its resources.
+    /// </summary>
+    /// <param name="accountLogin">The subaccount login (e.g. <c>w01abcde</c>).</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <exception cref="KasApiException">The KAS API returned a fault or an uninterpretable response.</exception>
+    Task DeleteAccountAsync(string accountLogin, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Edits the superuser-controlled settings (SSH access/keys) of a subaccount
+    /// (<c>update_superusersettings</c>). May only be executed by the main account.
+    /// </summary>
+    /// <param name="accountLogin">The subaccount login to edit (e.g. <c>w01abcde</c>).</param>
+    /// <param name="changes">The fields to change; unset fields are left unchanged.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <exception cref="KasApiException">The KAS API returned a fault or an uninterpretable response.</exception>
+    Task UpdateSuperuserSettingsAsync(string accountLogin, UpdateSuperuserSettings changes, CancellationToken cancellationToken = default);
+
+    /// <summary>Changes ownership of a path (<c>update_chown</c>). Requires a superuser login.</summary>
+    /// <param name="chown">The path, new owner and recursion flag.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <exception cref="KasApiException">The KAS API returned a fault or an uninterpretable response.</exception>
+    Task UpdateChownAsync(UpdateChown chown, CancellationToken cancellationToken = default);
+
     /// <summary>Lists the domains on the account (<c>get_domains</c>).</summary>
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <exception cref="KasApiException">The KAS API returned a fault or an uninterpretable response.</exception>

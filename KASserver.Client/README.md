@@ -29,6 +29,29 @@ public class MailProvisioning(IKasClient kas)
 }
 ```
 
+Account management (subaccounts, account/superuser settings, ownership) is available too — superuser-only actions require the main account:
+
+```csharp
+public class AccountProvisioning(IKasClient kas)
+{
+    public async Task Run()
+    {
+        var login = await kas.AddAccountAsync(new AddAccount
+        {
+            KasPassword = "Kas-Pw!",
+            FtpPassword = "Ftp-Pw!",
+            HostnameKind = AccountHostnameKind.Domain,
+            HostnamePart1 = "example",
+            HostnamePart2 = "com",
+            Quota = new AccountQuota { MaxDomain = 1, MaxWebspace = 1024 },
+        });
+
+        await kas.UpdateSuperuserSettingsAsync(login, new UpdateSuperuserSettings { SshAccess = true });
+        await kas.DeleteAccountAsync(login); // irreversible: removes all of the subaccount's resources
+    }
+}
+```
+
 > Not affiliated with or endorsed by Neue Medien Münnich / ALL-INKL.COM.
 
 Full docs: https://github.com/emuuu/KASserver.NET

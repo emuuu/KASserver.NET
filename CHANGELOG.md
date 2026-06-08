@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Mailbox actions: `GetMailAccountsAsync`, `AddMailAccountAsync`, `UpdateMailAccountAsync`, `DeleteMailAccountAsync`
 - Mail-forward actions: `GetMailForwardsAsync`, `AddMailForwardAsync`, `DeleteMailForwardAsync`
 - Account read actions: `GetAccountSettingsAsync`, `GetAccountResourcesAsync`, `GetDomainsAsync`
+- Typed account read actions: `GetAccountSettingsTypedAsync`, `GetAccountResourcesTypedAsync`
+- Subaccount actions: `AddAccountAsync`, `GetAccountsAsync`, `GetAccountAsync`, `UpdateAccountAsync`, `DeleteAccountAsync`
+- Account settings/superuser actions: `UpdateAccountSettingsAsync`, `UpdateSuperuserSettingsAsync`, `UpdateChownAsync`
 - Generic escape hatch `RequestAsync(action, params)` for any KAS action not yet wrapped
 - Dependency-injection integration via `AddKasServer(...)`
 - Multi-target support for net8.0, net9.0, and net10.0

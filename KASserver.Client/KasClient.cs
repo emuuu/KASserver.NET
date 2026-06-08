@@ -40,6 +40,105 @@ internal sealed class KasClient : IKasClient
     }
 
     /// <inheritdoc/>
+    public async Task<AccountSettings> GetAccountSettingsTypedAsync(CancellationToken cancellationToken = default)
+    {
+        var settings = await GetAccountSettingsAsync(cancellationToken).ConfigureAwait(false);
+        return AccountSettings.FromMap(settings);
+    }
+
+    /// <inheritdoc/>
+    public async Task<AccountResources> GetAccountResourcesTypedAsync(CancellationToken cancellationToken = default)
+    {
+        var resources = await GetAccountResourcesAsync(cancellationToken).ConfigureAwait(false);
+        return AccountResources.FromMap(resources);
+    }
+
+    /// <inheritdoc/>
+    public Task UpdateAccountSettingsAsync(UpdateAccountSettings changes, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(changes);
+
+        return _transport.CallAsync("update_accountsettings", changes.ToParameters(), cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async Task<string> AddAccountAsync(AddAccount account, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(account);
+
+        var response = await _transport.CallAsync("add_account", account.ToParameters(), cancellationToken).ConfigureAwait(false);
+        return ExtractAccountLogin(response);
+    }
+
+    // add_account returns the generated account_login as the ReturnInfo scalar (verified live).
+    // The map branch is a defensive fallback in case KAS ever wraps it in an "account_login" field.
+    internal static string ExtractAccountLogin(KasResponse response)
+    {
+        var login = response.ReturnInfo switch
+        {
+            string scalar => scalar,
+            IReadOnlyDictionary<string, object?> map => map.GetValueOrDefault("account_login") as string,
+            _ => null,
+        };
+
+        return !string.IsNullOrWhiteSpace(login)
+            ? login
+            : throw new KasApiException("add_account did not return an account login.", action: "add_account");
+    }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<SubAccount>> GetAccountsAsync(CancellationToken cancellationToken = default)
+    {
+        var response = await _transport.CallAsync("get_accounts", null, cancellationToken).ConfigureAwait(false);
+        return response.AsList().Select(SubAccount.FromMap).ToList();
+    }
+
+    /// <inheritdoc/>
+    public async Task<SubAccount?> GetAccountAsync(string accountLogin, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(accountLogin);
+
+        var parameters = new Dictionary<string, object?> { ["account_login"] = accountLogin };
+        var response = await _transport.CallAsync("get_accounts", parameters, cancellationToken).ConfigureAwait(false);
+        return response.AsList().Select(SubAccount.FromMap).FirstOrDefault();
+    }
+
+    /// <inheritdoc/>
+    public Task UpdateAccountAsync(string accountLogin, UpdateAccount changes, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(accountLogin);
+        ArgumentNullException.ThrowIfNull(changes);
+
+        return _transport.CallAsync("update_account", changes.ToParameters(accountLogin), cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public Task DeleteAccountAsync(string accountLogin, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(accountLogin);
+
+        var parameters = new Dictionary<string, object?> { ["account_login"] = accountLogin };
+        return _transport.CallAsync("delete_account", parameters, cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public Task UpdateSuperuserSettingsAsync(string accountLogin, UpdateSuperuserSettings changes, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(accountLogin);
+        ArgumentNullException.ThrowIfNull(changes);
+
+        return _transport.CallAsync("update_superusersettings", changes.ToParameters(accountLogin), cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public Task UpdateChownAsync(UpdateChown chown, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(chown);
+
+        return _transport.CallAsync("update_chown", chown.ToParameters(), cancellationToken);
+    }
+
+    /// <inheritdoc/>
     public async Task<IReadOnlyList<IReadOnlyDictionary<string, object?>>> GetDomainsAsync(CancellationToken cancellationToken = default)
     {
         var response = await _transport.CallAsync("get_domains", null, cancellationToken).ConfigureAwait(false);
