@@ -52,6 +52,40 @@ public class AccountProvisioning(IKasClient kas)
 }
 ```
 
+DNS zone records are supported as well (write actions need the account's DNS-settings permission):
+
+```csharp
+public class DnsProvisioning(IKasClient kas)
+{
+    public async Task Run()
+    {
+        var records = await kas.GetDnsRecordsAsync("example.com"); // zone_host trailing dot added for you
+
+        var recordId = await kas.AddDnsRecordAsync(new AddDnsRecord
+        {
+            ZoneHost = "example.com",
+            Type = DnsRecordType.Txt,
+            RecordName = "_acme-challenge",
+            RecordData = "token-value",
+        });
+
+        await kas.UpdateDnsRecordAsync(recordId, new UpdateDnsRecord { RecordData = "new-token" });
+        await kas.DeleteDnsRecordAsync(recordId); // delete/update work on the record_id
+    }
+}
+```
+
+DynDNS users (`add_ddnsuser`, `get_ddnsusers`, `update_ddnsuser`, `delete_ddnsuser`) work the same way — KAS generates the technical `dyndns_login`:
+
+```csharp
+var login = await kas.AddDynDnsUserAsync(new AddDynDnsUser
+{
+    Comment = "home router", Password = "Dyn-Pw!",
+    Zone = "example.com", Label = "home", TargetIp = "203.0.113.10",
+});
+await kas.DeleteDynDnsUserAsync(login);
+```
+
 > Not affiliated with or endorsed by Neue Medien Münnich / ALL-INKL.COM.
 
 Full docs: https://github.com/emuuu/KASserver.NET

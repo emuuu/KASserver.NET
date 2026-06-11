@@ -97,9 +97,66 @@ public class AccountProvisioning(IKasClient kas)
 }
 ```
 
+### DNS records
+
+```csharp
+public class DnsProvisioning(IKasClient kas)
+{
+    public async Task Example()
+    {
+        // List the zone's resource records (zone_host is normalized to a trailing dot for you).
+        // Built-in records report RecordId "0" and are neither Changeable nor Deleteable.
+        var records = await kas.GetDnsRecordsAsync("example.com");
+
+        // Add a TXT record (KAS generates the technical record_id, required for update/delete).
+        // Use a known type via DnsRecordType, or AddDnsRecord.RawType for a type not in the enum.
+        var recordId = await kas.AddDnsRecordAsync(new AddDnsRecord
+        {
+            ZoneHost = "example.com",
+            Type = DnsRecordType.Txt,
+            RecordName = "_acme-challenge",
+            RecordData = "token-value",
+            // Aux defaults to 0; set it as the priority for MX/SRV records.
+        });
+
+        // Change its data, then remove it again
+        await kas.UpdateDnsRecordAsync(recordId, new UpdateDnsRecord { RecordData = "new-token" });
+        await kas.DeleteDnsRecordAsync(recordId);
+    }
+}
+```
+
+> DNS write actions require the account's DNS-settings permission; without it KAS faults with `dns_settings_not_allowed`. `ResetDnsSettingsAsync` is destructive — it discards all custom records of the zone.
+
+### DynDNS users
+
+```csharp
+public class DynDnsProvisioning(IKasClient kas)
+{
+    public async Task Example()
+    {
+        // Create a DynDNS user for home.example.com (KAS generates the technical dyndns_login)
+        var login = await kas.AddDynDnsUserAsync(new AddDynDnsUser
+        {
+            Comment = "home router",
+            Password = "Dyn-Pw!",
+            Zone = "example.com",
+            Label = "home",
+            TargetIp = "203.0.113.10",
+            DualStack = true, // update both IPv4 and IPv6
+        });
+
+        // List users, change the comment, then remove it again (update/delete work on the dyndns_login)
+        var users = await kas.GetDynDnsUsersAsync();
+        await kas.UpdateDynDnsUserAsync(login, new UpdateDynDnsUser { Comment = "office router" });
+        await kas.DeleteDynDnsUserAsync(login);
+    }
+}
+```
+
 ## Status
 
-Early scaffold. Implemented: authentication, session handling, automatic flood throttling, raw-SOAP transport with `Map` parsing, the mailbox/forward read & write actions, and the account-management actions (subaccounts, account/superuser settings, ownership). The remaining KAS actions (DNS, databases, FTP, cronjobs, …) follow the same `RequestAsync(action, params)` mechanism and are being added incrementally.
+Early scaffold. Implemented: authentication, session handling, automatic flood throttling, raw-SOAP transport with `Map` parsing, the mailbox/forward read & write actions, the account-management actions (subaccounts, account/superuser settings, ownership), the DNS zone-record actions, and the DynDNS user actions. The remaining KAS actions (databases, FTP, cronjobs, …) follow the same `RequestAsync(action, params)` mechanism and are being added incrementally.
 
 ## Documentation
 
