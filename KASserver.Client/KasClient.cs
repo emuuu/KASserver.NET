@@ -5,9 +5,9 @@ namespace KASserver;
 /// <inheritdoc cref="IKasClient"/>
 internal sealed class KasClient : IKasClient
 {
-    private readonly KasSoapTransport _transport;
+    private readonly IKasTransport _transport;
 
-    public KasClient(KasSoapTransport transport) => _transport = transport;
+    public KasClient(IKasTransport transport) => _transport = transport;
 
     /// <inheritdoc/>
     public Task<KasResponse> RequestAsync(
