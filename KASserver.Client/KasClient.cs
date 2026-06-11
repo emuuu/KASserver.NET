@@ -214,4 +214,143 @@ internal sealed class KasClient : IKasClient
         var parameters = new Dictionary<string, object?> { ["mail_forward"] = mailForward };
         return _transport.CallAsync("delete_mailforward", parameters, cancellationToken);
     }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<DnsRecord>> GetDnsRecordsAsync(string zoneHost, CancellationToken cancellationToken = default)
+    {
+        var parameters = new Dictionary<string, object?> { ["zone_host"] = DnsZoneHost.Normalize(zoneHost) };
+        var response = await _transport.CallAsync("get_dns_settings", parameters, cancellationToken).ConfigureAwait(false);
+        return response.AsList().Select(DnsRecord.FromMap).ToList();
+    }
+
+    /// <inheritdoc/>
+    public async Task<DnsRecord?> GetDnsRecordAsync(string zoneHost, string recordId, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(recordId);
+
+        var parameters = new Dictionary<string, object?>
+        {
+            ["zone_host"] = DnsZoneHost.Normalize(zoneHost),
+            ["record_id"] = recordId,
+        };
+        var response = await _transport.CallAsync("get_dns_settings", parameters, cancellationToken).ConfigureAwait(false);
+        return response.AsList().Select(DnsRecord.FromMap).FirstOrDefault();
+    }
+
+    /// <inheritdoc/>
+    public async Task<string> AddDnsRecordAsync(AddDnsRecord record, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(record);
+
+        var response = await _transport.CallAsync("add_dns_settings", record.ToParameters(), cancellationToken).ConfigureAwait(false);
+        return ExtractRecordId(response);
+    }
+
+    // add_dns_settings returns the generated record_id as the ReturnInfo scalar (verified live).
+    // The map branch is a defensive fallback in case KAS ever wraps it in a "record_id" field.
+    internal static string ExtractRecordId(KasResponse response)
+    {
+        var recordId = response.ReturnInfo switch
+        {
+            string scalar => scalar,
+            IReadOnlyDictionary<string, object?> map => map.GetValueOrDefault("record_id") as string,
+            _ => null,
+        };
+
+        return !string.IsNullOrWhiteSpace(recordId)
+            ? recordId
+            : throw new KasApiException("add_dns_settings did not return a record id.", action: "add_dns_settings");
+    }
+
+    /// <inheritdoc/>
+    public Task UpdateDnsRecordAsync(string recordId, UpdateDnsRecord changes, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(recordId);
+        ArgumentNullException.ThrowIfNull(changes);
+
+        return _transport.CallAsync("update_dns_settings", changes.ToParameters(recordId), cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public Task DeleteDnsRecordAsync(string recordId, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(recordId);
+
+        var parameters = new Dictionary<string, object?> { ["record_id"] = recordId };
+        return _transport.CallAsync("delete_dns_settings", parameters, cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public Task ResetDnsSettingsAsync(string zoneHost, string? nameserver = null, CancellationToken cancellationToken = default)
+    {
+        var parameters = new Dictionary<string, object?> { ["zone_host"] = DnsZoneHost.Normalize(zoneHost) };
+
+        if (!string.IsNullOrWhiteSpace(nameserver))
+            parameters["nameserver"] = nameserver;
+
+        return _transport.CallAsync("reset_dns_settings", parameters, cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async Task<string> AddDynDnsUserAsync(AddDynDnsUser user, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+
+        var response = await _transport.CallAsync("add_ddnsuser", user.ToParameters(), cancellationToken).ConfigureAwait(false);
+        return ExtractDynDnsLogin(response);
+    }
+
+    // add_ddnsuser returns the generated dyndns_login as the ReturnInfo scalar (verified live; the
+    // docs only state it returns "true", but ReturnInfo carries the login). The map branch is a
+    // defensive fallback in case KAS ever wraps it in a "dyndns_login"/"ddns_login" field.
+    internal static string ExtractDynDnsLogin(KasResponse response)
+    {
+        var login = response.ReturnInfo switch
+        {
+            string scalar => scalar,
+            IReadOnlyDictionary<string, object?> map =>
+                (map.GetValueOrDefault("dyndns_login") ?? map.GetValueOrDefault("ddns_login")) as string,
+            _ => null,
+        };
+
+        return !string.IsNullOrWhiteSpace(login)
+            ? login
+            : throw new KasApiException("add_ddnsuser did not return a DynDNS login.", action: "add_ddnsuser");
+    }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<DynDnsUser>> GetDynDnsUsersAsync(CancellationToken cancellationToken = default)
+    {
+        var response = await _transport.CallAsync("get_ddnsusers", null, cancellationToken).ConfigureAwait(false);
+        return response.AsList().Select(DynDnsUser.FromMap).ToList();
+    }
+
+    /// <inheritdoc/>
+    public async Task<DynDnsUser?> GetDynDnsUserAsync(string dyndnsLogin, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(dyndnsLogin);
+
+        // get_ddnsusers filters on ddns_login (note: not dyndns_login like update/delete).
+        var parameters = new Dictionary<string, object?> { ["ddns_login"] = dyndnsLogin };
+        var response = await _transport.CallAsync("get_ddnsusers", parameters, cancellationToken).ConfigureAwait(false);
+        return response.AsList().Select(DynDnsUser.FromMap).FirstOrDefault();
+    }
+
+    /// <inheritdoc/>
+    public Task UpdateDynDnsUserAsync(string dyndnsLogin, UpdateDynDnsUser changes, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(dyndnsLogin);
+        ArgumentNullException.ThrowIfNull(changes);
+
+        return _transport.CallAsync("update_ddnsuser", changes.ToParameters(dyndnsLogin), cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public Task DeleteDynDnsUserAsync(string dyndnsLogin, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(dyndnsLogin);
+
+        var parameters = new Dictionary<string, object?> { ["dyndns_login"] = dyndnsLogin };
+        return _transport.CallAsync("delete_ddnsuser", parameters, cancellationToken);
+    }
 }

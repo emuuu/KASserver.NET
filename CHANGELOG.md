@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Typed account read actions: `GetAccountSettingsTypedAsync`, `GetAccountResourcesTypedAsync`
 - Subaccount actions: `AddAccountAsync`, `GetAccountsAsync`, `GetAccountAsync`, `UpdateAccountAsync`, `DeleteAccountAsync`
 - Account settings/superuser actions: `UpdateAccountSettingsAsync`, `UpdateSuperuserSettingsAsync`, `UpdateChownAsync`
+- DNS zone-record actions: `GetDnsRecordsAsync`, `GetDnsRecordAsync`, `AddDnsRecordAsync`, `UpdateDnsRecordAsync`, `DeleteDnsRecordAsync`, `ResetDnsSettingsAsync` — with the `DnsRecord` read model, the `DnsRecordType` enum plus a raw-type escape, and automatic `zone_host` trailing-dot normalization. Note: `ResetDnsSettingsAsync` is destructive — it discards all custom records of the zone
+- DynDNS user actions: `GetDynDnsUsersAsync`, `GetDynDnsUserAsync`, `AddDynDnsUserAsync`, `UpdateDynDnsUserAsync`, `DeleteDynDnsUserAsync` — with the `DynDnsUser` read model (`add_ddnsuser`/`get_ddnsusers`/`update_ddnsuser`/`delete_ddnsuser`)
 - Generic escape hatch `RequestAsync(action, params)` for any KAS action not yet wrapped
 - Dependency-injection integration via `AddKasServer(...)`
 - Multi-target support for net8.0, net9.0, and net10.0
