@@ -353,4 +353,81 @@ internal sealed class KasClient : IKasClient
         var parameters = new Dictionary<string, object?> { ["dyndns_login"] = dyndnsLogin };
         return _transport.CallAsync("delete_ddnsuser", parameters, cancellationToken);
     }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<Subdomain>> GetSubdomainsAsync(CancellationToken cancellationToken = default)
+    {
+        var response = await _transport.CallAsync("get_subdomains", null, cancellationToken).ConfigureAwait(false);
+        return response.AsList().Select(Subdomain.FromMap).ToList();
+    }
+
+    /// <inheritdoc/>
+    public async Task<Subdomain?> GetSubdomainAsync(string subdomainName, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(subdomainName);
+
+        var parameters = new Dictionary<string, object?> { ["subdomain_name"] = subdomainName };
+        var response = await _transport.CallAsync("get_subdomains", parameters, cancellationToken).ConfigureAwait(false);
+        return response.AsList().Select(Subdomain.FromMap).FirstOrDefault();
+    }
+
+    /// <inheritdoc/>
+    public async Task<string> AddSubdomainAsync(AddSubdomain subdomain, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(subdomain);
+
+        var response = await _transport.CallAsync("add_subdomain", subdomain.ToParameters(), cancellationToken).ConfigureAwait(false);
+        return ExtractSubdomainName(response);
+    }
+
+    // add_subdomain returns the full host name (subdomain_name.domain_name) as the ReturnInfo scalar
+    // (verified live; the docs only state it returns "TRUE", but ReturnInfo carries the host name).
+    // The map branch is a defensive fallback in case KAS ever wraps it in a "subdomain_name" field.
+    internal static string ExtractSubdomainName(KasResponse response)
+    {
+        var name = response.ReturnInfo switch
+        {
+            string scalar => scalar,
+            IReadOnlyDictionary<string, object?> map => map.GetValueOrDefault("subdomain_name") as string,
+            _ => null,
+        };
+
+        return !string.IsNullOrWhiteSpace(name)
+            ? name
+            : throw new KasApiException("add_subdomain did not return a subdomain name.", action: "add_subdomain");
+    }
+
+    /// <inheritdoc/>
+    public Task UpdateSubdomainAsync(string subdomainName, UpdateSubdomain changes, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(subdomainName);
+        ArgumentNullException.ThrowIfNull(changes);
+
+        return _transport.CallAsync("update_subdomain", changes.ToParameters(subdomainName), cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public Task DeleteSubdomainAsync(string subdomainName, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(subdomainName);
+
+        var parameters = new Dictionary<string, object?> { ["subdomain_name"] = subdomainName };
+        return _transport.CallAsync("delete_subdomain", parameters, cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public Task MoveSubdomainAsync(string subdomainName, string sourceAccount, string targetAccount, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(subdomainName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceAccount);
+        ArgumentException.ThrowIfNullOrWhiteSpace(targetAccount);
+
+        var parameters = new Dictionary<string, object?>
+        {
+            ["subdomain_name"] = subdomainName,
+            ["source_account"] = sourceAccount,
+            ["target_account"] = targetAccount,
+        };
+        return _transport.CallAsync("move_subdomain", parameters, cancellationToken);
+    }
 }

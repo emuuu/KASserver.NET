@@ -263,4 +263,54 @@ public interface IKasClient
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <exception cref="KasApiException">The KAS API returned a fault or an uninterpretable response.</exception>
     Task DeleteDynDnsUserAsync(string dyndnsLogin, CancellationToken cancellationToken = default);
+
+    /// <summary>Lists the subdomains on the account (<c>get_subdomains</c>).</summary>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>The subdomains on the account.</returns>
+    /// <exception cref="KasApiException">The KAS API returned a fault or an uninterpretable response.</exception>
+    Task<IReadOnlyList<Subdomain>> GetSubdomainsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Reads a single subdomain by its host name (<c>get_subdomains</c> with a <c>subdomain_name</c> filter).
+    /// </summary>
+    /// <param name="subdomainName">The subdomain host name, e.g. <c>shop.example.com</c>.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>The matching subdomain, or <c>null</c> when no subdomain matches the name.</returns>
+    /// <exception cref="KasApiException">The KAS API returned a fault or an uninterpretable response.</exception>
+    Task<Subdomain?> GetSubdomainAsync(string subdomainName, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Creates a subdomain (<c>add_subdomain</c>). The new host is <c>{SubdomainName}.{DomainName}</c>.
+    /// </summary>
+    /// <remarks>
+    /// KAS provisions the subdomain asynchronously: it reports <c>in_progress = TRUE</c> for a short
+    /// while after creation, and <see cref="UpdateSubdomainAsync"/> is rejected with an
+    /// <c>in_progress</c> fault until that clears.
+    /// </remarks>
+    /// <param name="subdomain">The subdomain to create.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>The full host name of the created subdomain (<c>{SubdomainName}.{DomainName}</c>), used to address it in subsequent update/delete/get calls.</returns>
+    /// <exception cref="KasApiException">The KAS API returned a fault or did not return a subdomain name.</exception>
+    Task<string> AddSubdomainAsync(AddSubdomain subdomain, CancellationToken cancellationToken = default);
+
+    /// <summary>Edits a subdomain (<c>update_subdomain</c>). Identified by its host name.</summary>
+    /// <param name="subdomainName">The subdomain host name, e.g. <c>shop.example.com</c>.</param>
+    /// <param name="changes">The fields to change; unset fields are left unchanged.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <exception cref="KasApiException">The KAS API returned a fault or an uninterpretable response.</exception>
+    Task UpdateSubdomainAsync(string subdomainName, UpdateSubdomain changes, CancellationToken cancellationToken = default);
+
+    /// <summary>Deletes a subdomain (<c>delete_subdomain</c>). Identified by its host name.</summary>
+    /// <param name="subdomainName">The subdomain host name, e.g. <c>shop.example.com</c>.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <exception cref="KasApiException">The KAS API returned a fault or an uninterpretable response.</exception>
+    Task DeleteSubdomainAsync(string subdomainName, CancellationToken cancellationToken = default);
+
+    /// <summary>Moves a subdomain between accounts (<c>move_subdomain</c>). Identified by its host name.</summary>
+    /// <param name="subdomainName">The subdomain host name, e.g. <c>shop.example.com</c>.</param>
+    /// <param name="sourceAccount">The source account the subdomain currently belongs to (<c>source_account</c>).</param>
+    /// <param name="targetAccount">The target account the subdomain is moved to (<c>target_account</c>).</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <exception cref="KasApiException">The KAS API returned a fault or an uninterpretable response.</exception>
+    Task MoveSubdomainAsync(string subdomainName, string sourceAccount, string targetAccount, CancellationToken cancellationToken = default);
 }
