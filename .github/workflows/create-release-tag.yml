@@ -60,6 +60,23 @@ jobs:
             echo "::error::No successful CI run found for commit $HEAD_SHA. Please ensure CI passes before creating a release."
             exit 1
           fi
+      # Stable releases promote the [Unreleased] changelog section into a dated [version] section and
+      # commit it to main, so the tag points at the finalized changelog. Skipped for prereleases, which
+      # must not consume the Unreleased entries. Fails if there is nothing under [Unreleased] to release.
+      - name: Promote changelog
+        if: ${{ inputs.prerelease == false }}
+        run: |
+          python3 .github/scripts/update_changelog.py \
+            --version "${{ inputs.version }}" \
+            --date "$(date -u +%Y-%m-%d)" \
+            --repo "${{ github.repository }}" \
+            --package "${PACKAGE}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          git commit -m "docs: update changelog for v${{ inputs.version }}"
+          git push origin "HEAD:${{ github.ref_name }}"
+          echo "Promoted [Unreleased] -> [${{ inputs.version }}] and pushed to ${{ github.ref_name }}"
       - name: Create and push tag
         run: |
           git tag "${{ steps.tag.outputs.TAG_NAME }}"
