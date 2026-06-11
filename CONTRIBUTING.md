@@ -45,6 +45,20 @@ This library is built strictly against the [official KAS API documentation](http
 4. **Keep PRs focused** — one logical change per PR.
 5. **Ensure CI passes** — all matrix builds (net8.0, net9.0, net10.0) must be green.
 
+## Changelog
+
+Add an entry under the `## [Unreleased]` heading in [CHANGELOG.md](CHANGELOG.md) for any user-facing change, grouped under `### Added` / `### Changed` / `### Fixed` (Keep a Changelog format). You do **not** create a version section by hand — the release process does that for you.
+
+## Releasing
+
+Releases are cut by running the **Create Release Tag** workflow (`workflow_dispatch`) with the target SemVer version. For a stable release it automatically:
+
+1. verifies CI is green on `main`,
+2. promotes the `[Unreleased]` changelog section into a dated `## [version]` section (and regenerates the compare links) via `.github/scripts/update_changelog.py`, committing that to `main` — so it **fails if `[Unreleased]` is empty**,
+3. creates and pushes the `kasserver/v<version>` tag, which triggers the pack + NuGet publish + GitHub Release.
+
+Prereleases (`-preview.N`) skip the changelog promotion.
+
 ## Code Style
 
 This project uses an `.editorconfig` for consistent formatting:
