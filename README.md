@@ -154,9 +154,43 @@ public class DynDnsProvisioning(IKasClient kas)
 }
 ```
 
+### Subdomains
+
+```csharp
+public class SubdomainProvisioning(IKasClient kas)
+{
+    public async Task Example()
+    {
+        // Create shop.example.com (returns the full host name, used to address it afterwards)
+        var host = await kas.AddSubdomainAsync(new AddSubdomain
+        {
+            SubdomainName = "shop",
+            DomainName = "example.com",
+            SubdomainPath = "/shop/",
+            PhpVersion = "8.3", // optional; KAS defaults apply when omitted
+        });
+
+        // Turn it into a 301 redirect to another host. Note: a freshly created subdomain is still
+        // provisioning (Subdomain.InProgress) and rejects updates until that clears — in real code,
+        // poll GetSubdomainAsync(host) until !InProgress before updating (see the note below).
+        await kas.UpdateSubdomainAsync(host, new UpdateSubdomain
+        {
+            SubdomainPath = "https://www.example.org",
+            Redirect = RedirectStatus.MovedPermanently,
+        });
+
+        // List subdomains, then remove it again (update/delete/get work on the host name)
+        var subdomains = await kas.GetSubdomainsAsync();
+        await kas.DeleteSubdomainAsync(host);
+    }
+}
+```
+
+> KAS provisions a new subdomain asynchronously: it reports `Subdomain.InProgress == true` for a short while after creation, and `UpdateSubdomainAsync` faults with `in_progress` until that clears.
+
 ## Status
 
-Early scaffold. Implemented: authentication, session handling, automatic flood throttling, raw-SOAP transport with `Map` parsing, the mailbox/forward read & write actions, the account-management actions (subaccounts, account/superuser settings, ownership), the DNS zone-record actions, and the DynDNS user actions. The remaining KAS actions (databases, FTP, cronjobs, …) follow the same `RequestAsync(action, params)` mechanism and are being added incrementally.
+Early scaffold. Implemented: authentication, session handling, automatic flood throttling, raw-SOAP transport with `Map` parsing, the mailbox/forward read & write actions, the account-management actions (subaccounts, account/superuser settings, ownership), the DNS zone-record actions, the DynDNS user actions, and the subdomain actions. The remaining KAS actions (databases, FTP, cronjobs, …) follow the same `RequestAsync(action, params)` mechanism and are being added incrementally.
 
 ## Documentation
 
