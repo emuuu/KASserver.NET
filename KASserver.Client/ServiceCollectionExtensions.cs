@@ -29,9 +29,12 @@ public static class ServiceCollectionExtensions
 
         services.AddHttpClient(KasServerDefaults.HttpClientName);
 
+        // One shared KasSoapTransport singleton holds the session token and flood window; IKasTransport
+        // is aliased to that same instance (no second transport) so the seam is behaviour-preserving.
         services.TryAddSingleton<KasSoapTransport>();
+        services.TryAddSingleton<IKasTransport>(sp => sp.GetRequiredService<KasSoapTransport>());
         services.TryAddSingleton<IKasClient>(sp =>
-            new KasClient(sp.GetRequiredService<KasSoapTransport>()));
+            new KasClient(sp.GetRequiredService<IKasTransport>()));
 
         return services;
     }

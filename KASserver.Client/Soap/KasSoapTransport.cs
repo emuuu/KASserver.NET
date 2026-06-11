@@ -12,7 +12,7 @@ namespace KASserver.Soap;
 /// Register as a singleton (see <see cref="ServiceCollectionExtensions.AddKasServer"/>) so the
 /// flood window and session token are shared across the process for a given account.
 /// </summary>
-internal sealed class KasSoapTransport
+internal sealed class KasSoapTransport : IKasTransport
 {
     private const string AuthUrl = "https://kasapi.kasserver.com/soap/KasAuth.php";
     private const string ApiUrl = "https://kasapi.kasserver.com/soap/KasApi.php";
