@@ -15,7 +15,7 @@ jobs:
       matrix:
         target-framework: [net8.0, net9.0, net10.0]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       # Install all SDKs so the build host understands every TargetFramework (net8/9/10)
       # and the .slnx solution format (needs SDK >= 9.0.200), regardless of which TFM is tested.
       - uses: actions/setup-dotnet@v5
@@ -35,7 +35,7 @@ jobs:
   pack:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: |
