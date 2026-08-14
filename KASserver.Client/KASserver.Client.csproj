@@ -37,7 +37,7 @@
 		<PackageReference Include="Microsoft.Extensions.Options" Version="10.0.10" />
 	</ItemGroup>
 	<ItemGroup>
-	  <PackageReference Update="Microsoft.SourceLink.GitHub" Version="10.0.301" />
+	  <PackageReference Update="Microsoft.SourceLink.GitHub" Version="10.0.400" />
 	</ItemGroup>
 
 </Project>
