@@ -86,6 +86,11 @@ var login = await kas.AddDynDnsUserAsync(new AddDynDnsUser
 await kas.DeleteDynDnsUserAsync(login);
 ```
 
-> Not affiliated with or endorsed by Neue Medien Münnich / ALL-INKL.COM.
 
 Full docs: https://github.com/emuuu/KASserver.NET
+
+> **Unofficial project.** Not affiliated with, endorsed by, or supported by Neue Medien Münnich GmbH (ALL-INKL.COM). See the trademark notice below.
+
+## Trademarks and disclaimer
+
+This is an independent, community-maintained project. It is not an official ALL-INKL.COM product and is not affiliated with, endorsed by, or sponsored by Neue Medien Münnich GmbH (ALL-INKL.COM). "KAS", "KASserver", "ALL-INKL" and "ALL-INKL.COM" are trademarks or registered trademarks of Neue Medien Münnich GmbH (ALL-INKL.COM); all other names and brands are the property of their respective owners and are used solely to identify the third-party APIs this package communicates with. Provided under the MIT license, as-is, with no warranty and no support agreement from ALL-INKL.COM. Details: [KASserver.NET](https://github.com/emuuu/KASserver.NET).

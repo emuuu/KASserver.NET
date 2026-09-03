@@ -10,7 +10,7 @@
 		<NoWarn>$(NoWarn);1591</NoWarn>
 		<PackageId>KASserver.NET</PackageId>
 		<Title>KASserver.NET</Title>
-		<Description>Unofficial .NET client for the ALL-INKL.COM KAS API (SOAP). Manage mailboxes, forwards, domains, DNS, databases, FTP and cronjobs — with automatic session auth and flood throttling, and a workaround for the faulty KAS WSDL.</Description>
+		<Description>Unofficial .NET client for the ALL-INKL.COM KAS API (SOAP). Manage mailboxes, forwards, domains, DNS, databases, FTP and cronjobs — with automatic session auth and flood throttling, and a workaround for the faulty KAS WSDL. Community project, not affiliated with or endorsed by Neue Medien Münnich GmbH (ALL-INKL.COM).</Description>
 		<PackageTags>all-inkl;allinkl;kas;kasserver;hosting;email;mailbox;dns;soap</PackageTags>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
